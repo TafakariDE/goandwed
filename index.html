@@ -227,9 +227,21 @@ pdfBtn.addEventListener('click', async () => {
   try {
     fillPdf();
 
-    // Element für html2pdf sichtbar machen (ohne Layout-Shift)
-    const pdfElement = document.getElementById('pdfSheet');
-    pdfElement.style.display = 'block';
+    // PDF-Element kopieren
+    const original = document.getElementById('pdfSheet');
+    const clone = original.cloneNode(true);
+
+    // Klon vorbereiten: sichtbar machen, Styles anpassen
+    clone.style.display = 'block';
+    clone.style.position = 'absolute';
+    clone.style.left = '0';
+    clone.style.top = '0';
+    clone.style.width = '210mm';
+    clone.style.backgroundColor = '#ffffff';
+    clone.style.zIndex = '9999';
+
+    // Klon kurz zum Body hinzufügen, damit html2canvas ihn sehen kann
+    document.body.appendChild(clone);
 
     const opt = {
       margin: 10,
@@ -239,16 +251,16 @@ pdfBtn.addEventListener('click', async () => {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // PDF generieren
-    await html2pdf().set(opt).from(pdfElement).save();
+    // Exportieren
+    await html2pdf().set(opt).from(clone).save();
 
     state.textContent = "PDF erfolgreich erstellt.";
+
+    // Klon wieder entfernen
+    document.body.removeChild(clone);
   } catch (err) {
     console.error(err);
-    state.textContent = "Fehler beim Export: " + err.message;
-  } finally {
-    // Wieder ausblenden
-    document.getElementById('pdfSheet').style.display = 'none';
+    state.textContent = "Fehler: " + err.message;
   }
 });
 
