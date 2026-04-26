@@ -227,34 +227,28 @@ pdfBtn.addEventListener('click', async () => {
   try {
     fillPdf();
 
-    // Element sichtbar machen
-    pdfSheet.style.display = 'block'; 
-    pdfSheet.style.position = 'absolute';
-    pdfSheet.style.left = '-9999px';
+    // Element für html2pdf sichtbar machen (ohne Layout-Shift)
+    const pdfElement = document.getElementById('pdfSheet');
+    pdfElement.style.display = 'block';
 
-    const filename = "kennenlerngespraech.pdf";
-
-    // html2pdf Konfiguration
     const opt = {
       margin: 10,
-      filename: filename,
+      filename: 'kennenlerngespraech.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     // PDF generieren
-    await html2pdf().set(opt).from(pdfSheet).save();
+    await html2pdf().set(opt).from(pdfElement).save();
 
-    state.textContent = "PDF wurde heruntergeladen.";
+    state.textContent = "PDF erfolgreich erstellt.";
   } catch (err) {
     console.error(err);
-    state.textContent = "Fehler: " + err.message;
+    state.textContent = "Fehler beim Export: " + err.message;
   } finally {
-    // Sichtbarkeit zurücksetzen
-    pdfSheet.style.display = 'none';
-    pdfSheet.style.position = 'static';
-    pdfSheet.style.left = 'auto';
+    // Wieder ausblenden
+    document.getElementById('pdfSheet').style.display = 'none';
   }
 });
 
