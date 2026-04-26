@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Go & Wed – Kennenlerngespräch</title>
   <meta name="description" content="Moderner mobiler Fragebogen für das erste Kennenlerngespräch und die erste Einschätzung zur Heirat in Dänemark." />
-    <style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+  <style>
     :root{
       --bg:#f5f1eb;--bg2:#efe7de;--surface:rgba(255,255,255,.84);--surface-solid:#fff;--text:#1f1b16;--muted:#6e665d;--line:rgba(74,62,49,.12);
       --pri:#0f766e;--pri-dark:#0b5c56;--pri-soft:#dff3ef;--accent:#b7794b;--ok:#2f855a;--shadow:0 20px 50px rgba(29,24,18,.08);--radius:24px;--radius-sm:16px;--max:1100px;
@@ -144,7 +145,7 @@
           <label class="check-card"><input type="checkbox" name="einverstaendnis" required value="ja"><span>Ich bin damit einverstanden, dass Go & Wed meine Angaben zur Vorbereitung des Kennenlerngesprächs verarbeitet.</span></label>
           <div class="actions">
             
-            <button class="btn btn-secondary" type="button" id="pdfBtn">Druckversion öffnen</button>
+            <button class="btn btn-secondary" type="button" id="pdfBtn">PDF herunterladen</button>
             <span class="state" id="state">Noch keine PDF erstellt.</span>
           </div>
           <div class="footer-note">Nach dem Absenden könnt ihr eure Angaben direkt als PDF speichern.</div>
@@ -221,19 +222,16 @@
       const items = checks('stand');
       list.innerHTML = items.length ? items.map(i => `<li>${i}</li>`).join('') : '<li>Noch keine Auswahl</li>';
     }
-    pdfBtn.addEventListener('click', async () => {
-      try {
-        fillPdf();
-        pdfSheet.classList.add('show');
-        const filename = `${value('vorname_person_1')}-${value('vorname_person_2')}`.toLowerCase().replace(/[^a-z0-9äöüß-]+/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'') || 'go-and-wed';
-        await html2pdf().set({margin:[8,8,10,8],filename:`${filename}-kennenlerngespraech.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(pdfSheet).save();
-        state.textContent = 'PDF wurde heruntergeladen.';
-      } catch(e) {
-        state.textContent = 'PDF konnte nicht erstellt werden.';
-      } finally {
-        pdfSheet.classList.remove('show');
-      }
-    });
+    function openPrint(){
+      fillPdf();
+      pdfSheet.classList.add('show');
+      state.textContent = 'Druckdialog wird geöffnet.';
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => pdfSheet.classList.remove('show'), 500);
+      }, 200);
+    }
+    pdfBtn.addEventListener('click', openPrint);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if(!form.reportValidity()) return;
@@ -243,7 +241,7 @@
         okBanner.classList.add('show');
         state.textContent = 'Formular erfolgreich abgesendet.';
       } catch(err) {
-        state.textContent = 'Absenden fehlgeschlagen, PDF ist weiterhin möglich.';
+        state.textContent = 'Absenden fehlgeschlagen, Druckversion ist weiterhin möglich.';
       }
     });
   </script>
