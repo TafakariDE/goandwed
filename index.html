@@ -222,19 +222,42 @@
       const items = checks('stand');
       list.innerHTML = items.length ? items.map(i => `<li>${i}</li>`).join('') : '<li>Noch keine Auswahl</li>';
     }
-    pdfBtn.addEventListener('click', async () => {
-      try {
-        fillPdf();
-        pdfSheet.classList.add('show');
-        const filename = `${value('vorname_person_1')}-${value('vorname_person_2')}`.toLowerCase().replace(/[^a-z0-9äöüß-]+/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'') || 'go-and-wed';
-        await html2pdf().set({margin:[8,8,10,8],filename:`${filename}-kennenlerngespraech.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(pdfSheet).save();
-        state.textContent = 'PDF wurde heruntergeladen.';
-      } catch(e) {
-        state.textContent = 'PDF konnte nicht erstellt werden.';
-      } finally {
-        pdfSheet.classList.remove('show');
-      }
-    });
+    
+pdfBtn.addEventListener('click', async () => {
+  try {
+    fillPdf();
+
+    // Element sichtbar machen
+    pdfSheet.style.display = 'block'; 
+    pdfSheet.style.position = 'absolute';
+    pdfSheet.style.left = '-9999px';
+
+    const filename = "kennenlerngespraech.pdf";
+
+    // html2pdf Konfiguration
+    const opt = {
+      margin: 10,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // PDF generieren
+    await html2pdf().set(opt).from(pdfSheet).save();
+
+    state.textContent = "PDF wurde heruntergeladen.";
+  } catch (err) {
+    console.error(err);
+    state.textContent = "Fehler: " + err.message;
+  } finally {
+    // Sichtbarkeit zurücksetzen
+    pdfSheet.style.display = 'none';
+    pdfSheet.style.position = 'static';
+    pdfSheet.style.left = 'auto';
+  }
+});
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if(!form.reportValidity()) return;
