@@ -144,7 +144,7 @@
           <div class="section-head" style="margin-bottom:10px"><div><h2>Einverständnis</h2><p>Mit dem Absenden stimmt ihr zu, dass wir eure Angaben für die Vorbereitung eures Kennenlerngesprächs verwenden.</p></div></div>
           <label class="check-card"><input type="checkbox" name="einverstaendnis" required value="ja"><span>Ich bin damit einverstanden, dass Go & Wed meine Angaben zur Vorbereitung des Kennenlerngesprächs verarbeitet.</span></label>
           <div class="actions">
-            <button class="btn btn-primary" type="submit">Fragebogen absenden</button>
+            
             <button class="btn btn-secondary" type="button" id="pdfBtn">PDF herunterladen</button>
             <span class="state" id="state">Noch keine PDF erstellt.</span>
           </div>
@@ -222,15 +222,19 @@
       const items = checks('stand');
       list.innerHTML = items.length ? items.map(i => `<li>${i}</li>`).join('') : '<li>Noch keine Auswahl</li>';
     }
-    
-pdfBtn.addEventListener('click', () => {
-  fillPdf();
-  const pdfElement = document.getElementById('pdfSheet');
-  pdfElement.style.display = 'block';
-  window.print();
-  pdfElement.style.display = 'none';
-});
-
+    pdfBtn.addEventListener('click', async () => {
+      try {
+        fillPdf();
+        pdfSheet.classList.add('show');
+        const filename = `${value('vorname_person_1')}-${value('vorname_person_2')}`.toLowerCase().replace(/[^a-z0-9äöüß-]+/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'') || 'go-and-wed';
+        await html2pdf().set({margin:[8,8,10,8],filename:`${filename}-kennenlerngespraech.pdf`,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(pdfSheet).save();
+        state.textContent = 'PDF wurde heruntergeladen.';
+      } catch(e) {
+        state.textContent = 'PDF konnte nicht erstellt werden.';
+      } finally {
+        pdfSheet.classList.remove('show');
+      }
+    });
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if(!form.reportValidity()) return;
